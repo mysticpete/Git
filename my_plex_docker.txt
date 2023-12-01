@@ -1,0 +1,98 @@
+services:
+    
+    pms-docker:
+        container_name: plex
+        network_mode: host
+        hostname: plex
+        runtime: nvidia
+        environment:
+            - TZ=Australia/Brisbane
+            - PLEX_UID=1000
+            - PLEX_GID=1000
+            - PLEX_CLAIM=192.168.31.5 - L 8888:localhost:32400 
+            - ADVERTISE_IP= http://192.168.31.5:32400 #ip:port here e.g. http://127.0.0.1:32400
+            - NVIDIA_VISIBLE_DEVICES=GPU-04aeacae-0ae1-25b6-1504-a4bec4ed2da9 #change as needed
+            - NVIDIA_DRIVER_CAPABILITIES=compute,video,utility
+        volumes:
+            - /var/docker/plex/config:/config
+            - /var/docker/plex/transcode:/transcode
+            - /home/user/data/television:/data/tvshows
+            - /home/user/data/movies:/data/movies
+            - /home/user/data/music:/data/music
+        restart: unless-stopped
+        devices:
+            - /dev/dri/card0:/dev/dri/card0 #your devices go here
+            - /dev/dri/renderD128:/dev/dri/renderD128 #may be different
+        image: plexinc/pms-docker:plexpass
+    
+    sabnzbd:
+        image: lscr.io/linuxserver/sabnzbd:latest
+        container_name: sabnzbd
+        environment:
+            - PUID=1000
+            - PGID=1000
+            - TZ=Australia/Brisbane
+        volumes:
+            - /home/user/data2/sabnzbd:/config
+            - /home/user/data2/sabnzbd/complete:/downloads #optional
+            - /home/user/data2/sabnzbd/incomplete/downloads:/incomplete-downloads #optional
+        ports:
+            - 8080:8080
+    restart: unless-stopped
+    
+    radarr:
+        image: ghcr.io/linuxserver/radarr
+        container_name: radarr
+        environment:
+            - PUID=1000
+            - PGID=1000
+            - TZ=Australia/Brisbane
+        volumes:
+            - /home/user/data2/radarr:/config
+            - /home/user/data/movies:/movies
+            - /home/user/data2/data:/downloads
+        network_mode: host #7878
+        restart: unless-stopped
+
+    sonarr:
+        image: ghcr.io/linuxserver/sonarr
+        container_name: sonarr
+        environment:
+            - PUID=1000
+            - PGID=1000
+            - TZ=Australia/Brisbane
+        volumes:
+            - /home/user/data2/sonarr:/config
+            - /home/user/data/television:/tv
+            - /home/user/data2/data:/downloads
+        network_mode: host #8989
+        restart: unless-stopped
+
+    lidarr:
+        image: ghcr.io/linuxserver/lidarr
+        container_name: lidarr
+        environment:
+            - PUID=1000
+            - PGID=1000
+            - TZ=Australia/Brisbane
+        volumes:
+            - /home/user/data2/lidarr:/config
+            - /home/user/data/music:/music 
+            - /home/user/data2/data:/downloads 
+        network_mode: host #8686:8686
+        restart: unless-stopped
+
+
+    nzbhydra2:
+        image: lscr.io/linuxserver/nzbhydra2:latest
+        container_name: nzbhydra2
+        environment:
+            - PUID=1000
+            - PGID=1000
+            - TZ=Australia/Brisbane
+        volumes:
+            - /home/user/data2/nzbhydra2:/config
+            - /home/user/data2/data:/downloads 
+        ports:
+            - 5076:5076
+        restart: unless-stopped
